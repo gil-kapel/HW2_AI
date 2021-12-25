@@ -1,5 +1,6 @@
 """Search Algos: MiniMax, AlphaBeta
 """
+from math import inf
 #TODO: you can import more modules, if needed
 #TODO: update ALPHA_VALUE_INIT, BETA_VALUE_INIT in utils
 import time
@@ -35,11 +36,6 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-
-
-
 
 class AlphaBeta(SearchAlgos):
 
