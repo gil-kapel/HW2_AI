@@ -56,7 +56,7 @@ class GameWrapper:
         """
 
         start = time.time()
-        move = self.players[player_index].make_move(self.time_to_make_a_move) # move returns (pos, soldier, dead_opponent_pos)
+        move = self.players[player_index].make_move(self.time_to_make_a_move)  # move returns (pos, soldier, dead_opponent_pos)
         end = time.time()
         time_diff = end - start
 

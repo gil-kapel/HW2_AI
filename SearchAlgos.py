@@ -37,6 +37,9 @@ class MiniMax(SearchAlgos):
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
 
+        #TODO: erase the following line and implement this function.
+        raise NotImplementedError
+
 class AlphaBeta(SearchAlgos):
 
     def search(self, state, depth, maximizing_player, alpha=ALPHA_VALUE_INIT, beta=BETA_VALUE_INIT):

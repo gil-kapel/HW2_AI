@@ -155,7 +155,7 @@ class Game:
     def checkNextMill(self, position, player):
         """
         Function to check if a player can make a mill in the next move.
-        :param position: curren position
+        :param position: current position
         :param board: np.array
         :param player: 1/2
         :return:
