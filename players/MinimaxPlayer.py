@@ -32,6 +32,7 @@ class Player(AbstractPlayer):
             - time_limit: float, time limit for a single turn.
         output:
             - direction: tuple, specifing the Player's movement
+            :return: move = (pos, soldier, dead_opponent_pos)
         """
         #TODO: erase the following line and implement this function.
 
