@@ -40,7 +40,7 @@ class MiniMax(SearchAlgos):
         board = state[0]
         if self.goal(board) or depth == 0:
             if maximizing_player:
-                return self.utility(state), state ## state needs to be direction ?
+                return self.utility(state), state  # state needs to be direction ?
             else:
                 return self.utility(state), None
         if maximizing_player:

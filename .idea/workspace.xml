@@ -3,8 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a9049163-a410-44c2-9542-fda9f4b8fc44" name="Default Changelist" comment="minimax init">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Game.py" beforeDir="false" afterPath="$PROJECT_DIR$/Game.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/GameWrapper.py" beforeDir="false" afterPath="$PROJECT_DIR$/GameWrapper.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SearchAlgos.py" beforeDir="false" afterPath="$PROJECT_DIR$/SearchAlgos.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players/MinimaxPlayer.py" beforeDir="false" afterPath="$PROJECT_DIR$/players/MinimaxPlayer.py" afterDir="false" />
     </list>
@@ -15,6 +13,14 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitSEFilterConfiguration">
+    <file-type-list>
+      <filtered-out-file-type name="LOCAL_BRANCH" />
+      <filtered-out-file-type name="REMOTE_BRANCH" />
+      <filtered-out-file-type name="TAG" />
+      <filtered-out-file-type name="COMMIT_BY_MESSAGE" />
+    </file-type-list>
   </component>
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
@@ -174,7 +180,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/players/MinimaxPlayer.py</url>
-          <line>102</line>
+          <line>140</line>
           <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>

@@ -5,13 +5,16 @@ from players.AbstractPlayer import AbstractPlayer
 #TODO: you can import more modules, if needed
 import numpy as np
 import utils
+import time
+import SearchAlgos
+import Game
 
 class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
         self.turn_count = 0   # increase when make moves
-        self.player_pos = [np.full(9, -1)]
-        self.rival_pos = [np.full(9, -1)]
+        self.player_pos = np.full(9, -1)
+        self.rival_pos = np.full(9, -1)
         #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
 
 
@@ -35,11 +38,29 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement
             :return: move = (pos, soldier, dead_opponent_pos)
         """
-        #TODO: erase the following line and implement this function.
-
-        move = minamx (something)
-
-        raise NotImplementedError
+        start = time.time()
+        end = start + time_limit
+        max_value = -np.inf
+        # direction (the new cell, soldier - 10 sized array, rival dead soldier - 10 sized array)
+        best_move = (-1, -1, -1)
+        depth = 1
+        # state = (self.board, self.turn_count, self.player_pos, self.rival_pos, 1, best_move)
+        minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game(self, 1))
+        player = self.__init__(self.game_time)
+        while end is not time.time() + 1:
+            value, direction = minimax.search((player, best_move), depth, 1)
+            if value > max_value:
+                best_move = direction
+                max_value = value
+            depth += 1
+        # update self values
+        self.board[self.player_pos[best_move[1]]] = 0
+        self.board[best_move[0]] = 1
+        self.player_pos[best_move[1]] = best_move[0]
+        if best_move[2] is not -1:
+            self.rival_pos[best_move[2]] = -1
+        self.turn_count += 1
+        return best_move
 
     def set_rival_move(self, move):
         """Update your info, given the new position of the rival.
@@ -47,15 +68,31 @@ class Player(AbstractPlayer):
             - move: tuple, the new position of the rival.
         No output is expected
         """
-        # TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        # direction (the new cell, soldier - 10 sized array, rival dead soldier - 10 sized array)
 
-
+        self.board[self.rival_pos[move[1]]] = 0
+        self.board[move[0]] = 2
+        self.rival_pos[move[1]] = move[0]
+        if move[2] is not -1:
+            self.player_pos[move[2]] = -1
+        self.turn_count += 1
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
 
-    def calculate_state_heuristic(self, board):
+    def check_end_game(self, player_idx : int) -> bool:
+        if player_idx is 1:
+            dead = np.where(self.player_pos != -2)[0]
+        else:
+            dead = np.where(self.rival_pos != -2)[0]
+        if len(dead) < 3:
+            return True
+        return False
+
+    ########## helper functions for AlphaBeta algorithm ##########
+    # TODO: add here the utility, succ, an
+
+    def calculate_state_heuristic(self):
         mill_num = 0
         rival_mill_num = 0
         incomplete_mills = 0
@@ -64,6 +101,7 @@ class Player(AbstractPlayer):
         rival_blocked_soldiers = 0
         incomplete_mills_that_player_cant_block = 0
         incomplete_mills_that_rival_cant_block = 0
+        board = self.board
         for cell in board:
             if cell is 1:
                 if self.is_mill(cell):
@@ -88,10 +126,6 @@ class Player(AbstractPlayer):
                0.3 * (mill_num - rival_mill_num) + \
                0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
                0.25 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
-
-
-    ########## helper functions for AlphaBeta algorithm ##########
-    # TODO: add here the utility, succ, an
 
     def check_if_blocked(self, position, player, board=None):
         """
@@ -191,3 +225,5 @@ class Player(AbstractPlayer):
         ]
 
         return blocked[position]
+
+
