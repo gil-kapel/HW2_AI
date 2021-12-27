@@ -9,6 +9,8 @@ import time
 import SearchAlgos
 import Game
 
+############################# make deep copy for player class - search arg and yield of succ function ##################################################
+
 class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
@@ -16,7 +18,6 @@ class Player(AbstractPlayer):
         self.player_pos = np.full(9, -1)
         self.rival_pos = np.full(9, -1)
         #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
-
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -28,6 +29,7 @@ class Player(AbstractPlayer):
         """
         # TODO: erase the following line and implement this function.
         self.board = board
+
     def make_move(self, time_limit):
         """Make move with this Player.
         input:
@@ -87,8 +89,12 @@ class Player(AbstractPlayer):
             return True
         return False
 
+
     ########## helper functions for AlphaBeta algorithm ##########
     # TODO: add here the utility, succ, an
+
+    # heuristic of phase 1
+
 
     def calculate_state_heuristic(self):
         mill_num = 0
