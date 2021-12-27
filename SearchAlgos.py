@@ -36,7 +36,7 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # state = (board,turn,player_pos)
+        # state = (board,turn,player_pos,rival_pos)
         board = state[0]
         if self.goal(board) or depth == 0:
             if maximizing_player:
