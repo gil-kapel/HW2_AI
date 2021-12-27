@@ -27,9 +27,7 @@ class Player(AbstractPlayer):
         No output is expected.
         """
         # TODO: erase the following line and implement this function.
-        # raise NotImplementedError
         self.board = board
-
     def make_move(self, time_limit):
         """Make move with this Player.
         input:
@@ -143,7 +141,7 @@ class Player(AbstractPlayer):
             if board[i] == 0:
                 return False
         return True
-    
+
     def is_unblocked_mill(self, position, player, board=None):
         """
         Function to check if a player has an unblocked mill.
@@ -157,10 +155,10 @@ class Player(AbstractPlayer):
         blocked = [
             (board[0] is 0 and (self.is_player(player, 3, 5, board) and self.is_player(player, 1, 3, board) or \
              self.is_player(player, 1, 2, board) and self.is_player(player, 1, 3, board))),
-             
+
             (board[1] is 0 and (self.is_player(player, 0, 2, board) and self.is_player(player, 0, 9, board) or \
              self.is_player(player, 9, 17, board) and self.is_player(player, 0, 2, board))),
-            
+
             (board[2] is 0 and (self.is_player(player, 4, 7, board) and self.is_player(player, 1, 4, board) or \
             self.is_player(player, 0, 1, board) and self.is_player(player, 1, 4, board))),
 
@@ -225,5 +223,52 @@ class Player(AbstractPlayer):
         ]
 
         return blocked[position]
+
+    # state = (minmaxplayer,direction)
+    # direction = (pos, soldier, dead_opponent_pos)
+    def succ (self, player_turn, direction):
+        ## direction only has meaning in return
+        ## direction (cell,player_soldier,dead_soldier)
+        # player_pos[player_soldier] = cell
+        # if dead_soldier != -1
+        #     rival[dead_soldier] = -1
+        if player_turn == 2:
+            tmp = self.player_pos
+            self.player_pos = self.rival_pos
+            self.rival_pos = tmp
+        ## PHASE 1
+        if self.turn_count < 10:
+            for i in range[0::24]:
+                if (i not in self.rival_pos) and (i not in self.player_pos):
+                    self.player_pos[self.turn_count-1] = i
+                    self.board[i] = player_turn
+                    self.turn_count += 1
+                    if self.is_mill(i, player_turn):
+                        for to_kill in self.rival_pos:
+                            if self.is_mill(to_kill, 3 - player_turn):
+                                self.board[self.rival_pos[to_kill]] = 0
+                                self.rival_pos[to_kill] = -1
+                                self.turn_count += 1
+                                yield self, (i, i-1, to_kill)
+                    else:
+                        yield self, (i, i-1, -1)
+        else:
+            ## PHASE 2
+            for i in range[0::9]:
+                directions = utils.get_directions(self.player_pos[i])
+                for d in directions:
+                    if (d not in self.rival_pos) and (d not in self.player_pos):
+                        self.board[self.player_pos[i]] = 0
+                        self.board[d] = player_turn
+                        self.player_pos[i] = d
+                        if self.is_mill(d, player_turn):
+                            for to_kill in self.rival_pos:
+                                if self.is_mill(to_kill, 3-player_turn):
+                                    self.board[self.rival_pos[to_kill]] = 0
+                                    self.rival_pos[to_kill] = -1
+                                    self.turn_count += 1
+                                    yield self, (d, i, to_kill)
+                        else:
+                            yield self, (d, i, -1)
 
 

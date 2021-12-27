@@ -26,7 +26,6 @@ class SearchAlgos:
     def search(self, state, depth, maximizing_player):
         pass
 
-
 class MiniMax(SearchAlgos):
 
     def search(self, state, depth, maximizing_player):
@@ -36,16 +35,17 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # state = (board,turn,player_pos,rival_pos)
-        board = state[0]
+        # state = (self,turn,direction)
+        # direction = (pos, soldier, dead_opponent_pos)
+        board = state[0].board
         if self.goal(board) or depth == 0:
             if maximizing_player:
-                return self.utility(state), state  # state needs to be direction ?
+                return self.utility(state), state[2]
             else:
                 return self.utility(state), None
         if maximizing_player:
             curr_max = -np.inf
-            for c in self.succ(state):
+            for c in self.succ(state[0]):
                 curr = self.search(c, depth-1, False)
                 curr_max = max(curr[0], curr_max[0])
             return curr_max
@@ -67,16 +67,16 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # state = (board,turn,player_pos)
+        # state = (self,turn,direction)
         board = state[0]
         if self.goal(board) or depth == 0:
             if maximizing_player:
-                return self.utility(state), state ## state needs to be direction ?
+                return self.utility(state), state[2] ## state needs to be direction ?
             else:
                 return self.utility(state), None
         if maximizing_player:
             curr_max = -np.inf
-            for c in self.succ(state):
+            for c in self.succ(state[0]):
                 curr = self.search(c, depth-1, False, alpha, beta)
                 curr_max = max(curr[0], curr_max[0])
                 alpha = max(curr_max[0], alpha)
