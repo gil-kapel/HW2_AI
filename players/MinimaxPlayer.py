@@ -63,7 +63,7 @@ class Player(AbstractPlayer):
         else:
             minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         """"########################## check if 1 is enough #########################"""
-        while end > time.time() + 1 and depth <= 3:
+        while end > time.time() + 1 and depth <= 4:
             value, direction = minimax.search((copy.deepcopy(self), self.player_index, best_move), depth, True)
             if value >= max_value:
                 best_move = direction

@@ -80,7 +80,7 @@ class AlphaBeta(SearchAlgos):
                 curr_max = (curr[0], c[2]) if curr[0] > curr_max[0] else curr_max
                 alpha = max(curr_max[0], alpha)
                 if curr_max[0] >= beta:
-                    return np.inf, None
+                    return np.inf, curr_max[1]
             return curr_max
 
         else:
@@ -90,5 +90,5 @@ class AlphaBeta(SearchAlgos):
                 curr_min = (curr[0], c[2]) if curr[0] < curr_min[0] else curr_min
                 beta = min(curr_min[0], beta)
                 if curr_min[0] <= alpha:
-                    return -np.inf, None
+                    return -np.inf, curr_min[1]
             return curr_min
