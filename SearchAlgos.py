@@ -66,29 +66,29 @@ class AlphaBeta(SearchAlgos):
         :param: beta: beta value
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # state = (self,turn,direction)
-        board = state[0]
+        # state = (self,player_index,direction)
+        # direction = (pos, soldier, dead_opponent_pos)
         if self.goal(state[0]) or depth == 0:
             if maximizing_player:
-                return self.utility(state), state[2] ## state needs to be direction ?
+                return self.utility(state), state[2]
             else:
                 return self.utility(state), None
         if maximizing_player:
-            curr_max = -np.inf
+            curr_max = -np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, False, alpha, beta)
-                curr_max = max(curr[0], curr_max[0])
+                curr_max = (curr[0], c[2]) if curr[0] > curr_max[0] else curr_max
                 alpha = max(curr_max[0], alpha)
-                if curr_max >= beta:
+                if curr_max[0] >= beta:
                     return np.inf, None
             return curr_max
 
         else:
-            curr_min = np.inf
+            curr_min = np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, True, alpha, beta)
-                curr_min = min(curr[0], curr_min[0])
+                curr_min = (curr[0], c[2]) if curr[0] < curr_min[0] else curr_min
                 beta = min(curr_min[0], beta)
-                if curr_min <= alpha:
+                if curr_min[0] <= alpha:
                     return -np.inf, None
             return curr_min

@@ -1,15 +1,23 @@
 """
 MiniMax Player with AlphaBeta pruning
 """
+
 from players.AbstractPlayer import AbstractPlayer
+from players.MinimaxPlayer import Player as MiniMax
+import numpy as np
+import utils
+import time
+import SearchAlgos
+import copy
 #TODO: you can import more modules, if needed
 
 
 class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time) # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
-
+        self.player1 = MiniMax(game_time)
+        self.player1.enable_alpha_beta()
+        self.whatever = self.player1.AlphaBeta
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -19,8 +27,7 @@ class Player(AbstractPlayer):
             - board: np.array, of the board.
         No output is expected.
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        self.player1.set_game_params(board)
     
 
     def make_move(self, time_limit):
@@ -31,7 +38,7 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement
         """
         #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        return self.player1.make_move(time_limit)
 
 
     def set_rival_move(self, move):
@@ -41,7 +48,7 @@ class Player(AbstractPlayer):
         No output is expected
         """
         #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        self.player1.set_rival_move(move)
 
 
 
