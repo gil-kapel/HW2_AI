@@ -62,13 +62,16 @@ class Player(AbstractPlayer):
             minimax = SearchAlgos.AlphaBeta(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         else:
             minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
-        """"########################## check if 1 is enough #########################"""
-        while end > time.time() + 1 and depth <= 4:
+        """"##########################  #########################"""
+        end_phase = 0
+        while end - time.time() > 2*end_phase and depth <= 4:
+            start_phase = time.time()
             value, direction = minimax.search((copy.deepcopy(self), self.player_index, best_move), depth, True)
             if value >= max_value:
                 best_move = direction
                 max_value = value
             depth += 1
+            end_phase = time.time() -start_phase
         # update self values
         cell, my_soldier, rival_soldier_cell = best_move
         self.turn_count += 1
