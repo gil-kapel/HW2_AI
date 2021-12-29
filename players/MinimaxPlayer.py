@@ -64,14 +64,16 @@ class Player(AbstractPlayer):
                 max_value = value
             depth += 1
         # update self values
-        cell, my_soldier, rival_soldier = best_move
+        cell, my_soldier, rival_soldier_cell = best_move
         self.turn_count += 1
+
         self.board[self.player_pos[my_soldier]] = 0
         self.board[cell] = self.player_index
         self.player_pos[my_soldier] = cell
-        if rival_soldier != -1:
-            self.board[self.rival_pos[rival_soldier]] = 0
-            self.rival_pos[rival_soldier] = -2
+        if rival_soldier_cell != -1:
+            self.board[rival_soldier_cell] = 0
+            dead_soldier = int(np.where(self.rival_pos == rival_soldier_cell)[0][0])
+            self.rival_pos[dead_soldier] = -2
         return best_move
 
     def set_rival_move(self, move):
@@ -82,7 +84,6 @@ class Player(AbstractPlayer):
         """
         # direction (the new cell, soldier - 10 sized array, rival dead soldier - 10 sized array)
         rival_pos, rival_soldier, my_dead_pos = move
-
         if self.turn_count < 9:
             self.board[rival_pos] = self.rival_index
             self.rival_pos[rival_soldier] = rival_pos
@@ -108,10 +109,10 @@ class Player(AbstractPlayer):
         if len(dead) >= 3:
             return False
         for index, x in enumerate(self.rival_pos):
-            if x != -1 and not self.check_if_blocked(x, 2):
+            if x != -1 and not self.check_if_blocked(x):
                 return False
         for index, x in enumerate(self.player_pos):
-            if x != -1 and not self.check_if_blocked(x, 1):
+            if x != -1 and not self.check_if_blocked(x):
                 return False
         return True
 
@@ -356,11 +357,13 @@ class Player(AbstractPlayer):
         # player_pos[player_soldier] = cell
         # if dead_soldier != -1
         # rival[dead_soldier] = -1
-
-        if player_idx == 2:
+        if player_idx != player.player_index:
+            player = copy.deepcopy(player)
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
+            player.rival_index = player.player_index
+            player.player_index = player_idx
         # PHASE 1
         if player.turn_count < 18:
             if self.turn_count > 11:
@@ -389,7 +392,10 @@ class Player(AbstractPlayer):
             for i in range(9):
                 if player.player_pos[i] in [-1, -2]:
                     continue
+
                 directions = utils.get_directions(player.player_pos[i])
+                if i == 5 and 10 in directions:
+                    print()
                 for d in directions:
                     if (d not in player.rival_pos) and (d not in player.player_pos):
                         player2 = copy.deepcopy(player)

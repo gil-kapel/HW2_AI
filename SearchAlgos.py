@@ -37,7 +37,6 @@ class MiniMax(SearchAlgos):
         """
         # state = (self,player_index,direction)
         # direction = (pos, soldier, dead_opponent_pos)
-        board = state[0].board
         if self.goal(state[0]) or depth == 0:
             if maximizing_player:
                 return self.utility(state), state[2]
