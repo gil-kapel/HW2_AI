@@ -35,23 +35,23 @@ class MiniMax(SearchAlgos):
         :param maximizing_player: Whether this is a max node (True) or a min node (False).
         :return: A tuple: (The min max algorithm value, The direction in case of max node or None in min mode)
         """
-        # state = (self,turn,direction)
+        # state = (self,player_index,direction)
         # direction = (pos, soldier, dead_opponent_pos)
         board = state[0].board
-        if self.goal(board) or depth == 0:
+        if self.goal(state[0], state[1]) or depth == 0:
             if maximizing_player:
                 return self.utility(state), state[2]
             else:
                 return self.utility(state), None
         if maximizing_player:
             curr_max = -np.inf
-            for c in self.succ(state[0]):
+            for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, False)
                 curr_max = max(curr[0], curr_max[0])
             return curr_max
         else:
             curr_min = np.inf
-            for c in self.succ(state):
+            for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, True)
                 curr_min = min(curr[0], curr_min[0])
             return curr_min
@@ -69,14 +69,14 @@ class AlphaBeta(SearchAlgos):
         """
         # state = (self,turn,direction)
         board = state[0]
-        if self.goal(board) or depth == 0:
+        if self.goal(state[0], state[1]) or depth == 0:
             if maximizing_player:
                 return self.utility(state), state[2] ## state needs to be direction ?
             else:
                 return self.utility(state), None
         if maximizing_player:
             curr_max = -np.inf
-            for c in self.succ(state[0]):
+            for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, False, alpha, beta)
                 curr_max = max(curr[0], curr_max[0])
                 alpha = max(curr_max[0], alpha)
@@ -86,7 +86,7 @@ class AlphaBeta(SearchAlgos):
 
         else:
             curr_min = np.inf
-            for c in self.succ(state):
+            for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, True, alpha, beta)
                 curr_min = min(curr[0], curr_min[0])
                 beta = min(curr_min[0], beta)

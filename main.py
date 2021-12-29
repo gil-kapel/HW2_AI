@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('-player1', default='RandomPlayer', type=str,
+    parser.add_argument('-player1', default='MinimaxPlayer', type=str,
                         help='The type of the first player.',
                         choices=players_options)
     parser.add_argument('-player2', default='SimplePlayer',  type=str,

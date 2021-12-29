@@ -7,8 +7,7 @@ import numpy as np
 import utils
 import time
 import SearchAlgos
-import Game
-
+import copy
 ############################# make deep copy for player class - search arg and yield of succ function ##################################################
 
 class Player(AbstractPlayer):
@@ -45,10 +44,9 @@ class Player(AbstractPlayer):
         best_move = (-1, -1, -1)
         depth = 1
         # state = (self.board, self.turn_count, self.player_pos, self.rival_pos, 1, best_move)
-        minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game(self, 1))
-        player = self.__init__(self.game_time)
-        while end is not time.time() + 1:
-            value, direction = minimax.search((player, best_move), depth, 1)
+        minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
+        while end > time.time() + 1:  ########################## check if 1 is enough #########################
+            value, direction = minimax.search((copy.deepcopy(self), 1, best_move), depth, True)
             if value > max_value:
                 best_move = direction
                 max_value = value
@@ -58,6 +56,7 @@ class Player(AbstractPlayer):
         self.board[best_move[0]] = 1
         self.player_pos[best_move[1]] = best_move[0]
         if best_move[2] is not -1:
+            self.board[self.rival_pos[best_move[2]]] = 0
             self.rival_pos[best_move[2]] = -1
         self.turn_count += 1
         return best_move
@@ -74,17 +73,18 @@ class Player(AbstractPlayer):
         self.board[move[0]] = 2
         self.rival_pos[move[1]] = move[0]
         if move[2] is not -1:
+            self.board[self.player_pos[move[2]]] = 0
             self.player_pos[move[2]] = -1
         self.turn_count += 1
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
 
-    def check_end_game(self, player_idx : int) -> bool:
+    def check_end_game(self, player, player_idx : int) -> bool:
         if player_idx is 1:
-            dead = np.where(self.player_pos != -2)[0]
+            dead = np.where(player.player_pos != -2)[0]
         else:
-            dead = np.where(self.rival_pos != -2)[0]
+            dead = np.where(player.rival_pos != -2)[0]
         if len(dead) < 3:
             return True
         return False
@@ -319,49 +319,49 @@ class Player(AbstractPlayer):
 
     # state = (minmaxplayer,direction)
     # direction = (pos, soldier, dead_opponent_pos)
-    def succ (self, player_turn, direction):
+    def succ (self, player, player_turn, direction):
         ## direction only has meaning in return
         ## direction (cell,player_soldier,dead_soldier)
         # player_pos[player_soldier] = cell
         # if dead_soldier != -1
         #     rival[dead_soldier] = -1
         if player_turn == 2:
-            tmp = self.player_pos
-            self.player_pos = self.rival_pos
-            self.rival_pos = tmp
+            tmp = player.player_pos
+            player.player_pos = player.rival_pos
+            player.rival_pos = tmp
         ## PHASE 1
-        if self.turn_count < 10:
-            for i in range[0::24]:
-                if (i not in self.rival_pos) and (i not in self.player_pos):
-                    self.player_pos[self.turn_count-1] = i
-                    self.board[i] = player_turn
-                    self.turn_count += 1
-                    if self.is_mill(i, player_turn):
-                        for to_kill in self.rival_pos:
-                            if self.is_mill(to_kill, 3 - player_turn):
-                                self.board[self.rival_pos[to_kill]] = 0
-                                self.rival_pos[to_kill] = -1
-                                self.turn_count += 1
-                                yield self, (i, i-1, to_kill)
+        if player.turn_count < 10:
+            for i in range (24):
+                if (i not in player.rival_pos) and (i not in player.player_pos):
+                    player.player_pos[player.turn_count-1] = i
+                    player.board[i] = player_turn
+                    player.turn_count += 1
+                    if player.is_mill(i, player_turn):
+                        for to_kill in player.rival_pos:
+                            if player.is_mill(to_kill, 3 - player_turn):
+                                player.board[player.rival_pos[to_kill]] = 0
+                                player.rival_pos[to_kill] = -1
+                                player.turn_count += 1
+                                yield copy.deepcopy(player), 3 - player_turn, (i, i-1, to_kill)
                     else:
-                        yield self, (i, i-1, -1)
+                        yield copy.deepcopy(player), 3 - player_turn, (i, i-1, -1)
         else:
             ## PHASE 2
             for i in range[0::9]:
-                directions = utils.get_directions(self.player_pos[i])
+                directions = utils.get_directions(player.player_pos[i])
                 for d in directions:
-                    if (d not in self.rival_pos) and (d not in self.player_pos):
-                        self.board[self.player_pos[i]] = 0
-                        self.board[d] = player_turn
-                        self.player_pos[i] = d
-                        if self.is_mill(d, player_turn):
-                            for to_kill in self.rival_pos:
-                                if self.is_mill(to_kill, 3-player_turn):
-                                    self.board[self.rival_pos[to_kill]] = 0
-                                    self.rival_pos[to_kill] = -1
-                                    self.turn_count += 1
-                                    yield self, (d, i, to_kill)
+                    if (d not in player.rival_pos) and (d not in player.player_pos):
+                        player.board[player.player_pos[i]] = 0
+                        player.board[d] = player_turn
+                        player.player_pos[i] = d
+                        if player.is_mill(d, player_turn):
+                            for to_kill in player.rival_pos:
+                                if player.is_mill(to_kill, 3-player_turn):
+                                    player.board[player.rival_pos[to_kill]] = 0
+                                    player.rival_pos[to_kill] = -1
+                                    player.turn_count += 1
+                                    yield copy.deepcopy(player), 3 - player_turn, (d, i, to_kill)
                         else:
-                            yield self, (d, i, -1)
+                            yield copy.deepcopy(player), 3 - player_turn, (d, i, -1)
 
 
