@@ -105,6 +105,7 @@ class Player(AbstractPlayer):
         rival_blocked_soldiers = 0
         incomplete_mills_that_player_cant_block = 0
         incomplete_mills_that_rival_cant_block = 0
+        diagonal_placement = 0
         board = self.board
         for cell in board:
             if cell is 1:
@@ -125,11 +126,22 @@ class Player(AbstractPlayer):
                     rival_incomplete_mills += 1
                 if self.is_unblocked_mill(cell, 2, board):
                     incomplete_mills_that_player_cant_block += 1
-        return 0.15 * incomplete_mills + \
-               0.1 * (incomplete_mills - rival_incomplete_mills) + \
-               0.3 * (mill_num - rival_mill_num) + \
-               0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
-               0.25 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+            elif cell is 0:
+                if self.is_diagonal(cell):
+                    diagonal_placement += 1
+        if self.turn_count < 19:
+            return 0.2 * (mill_num - rival_mill_num) + \
+                   0 * diagonal_placement + \
+                   0.2 * incomplete_mills is 2 + \
+                   0.2 * rival_incomplete_mills is 0 + \
+                   0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
+                   0.2 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+        else:
+            return 0.2 * incomplete_mills + \
+                   0.2 * (incomplete_mills - rival_incomplete_mills) + \
+                   0.2 * (mill_num - rival_mill_num) + \
+                   0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
+                   0.2 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
 
     def check_if_blocked(self, position, player, board=None):
         """
@@ -229,6 +241,81 @@ class Player(AbstractPlayer):
         ]
 
         return blocked[position]
+
+    def is_diagonal(self, cell, player, board=None):
+        if board is None:
+            board = self.board
+        diagonal = [
+            (board[0] is 0 and (self.is_player(player, 3, 5, board) and self.is_player(player, 1, 3, board) or \
+             self.is_player(player, 1, 2, board) and self.is_player(player, 1, 3, board))),
+
+            (board[1] is 0 and (self.is_player(player, 0, 2, board) and self.is_player(player, 0, 9, board) or \
+             self.is_player(player, 9, 17, board) and self.is_player(player, 0, 2, board))),
+
+            (board[2] is 0 and (self.is_player(player, 4, 7, board) and self.is_player(player, 1, 4, board) or \
+            self.is_player(player, 0, 1, board) and self.is_player(player, 1, 4, board))),
+
+            (board[3] is 0 and (self.is_player(player, 0, 11, board) and self.is_player(player, 0, 5, board) or \
+            self.is_player(player, 11, 19, board) and self.is_player(player, 0, 5, board))),
+
+            (board[4] is 0 and (self.is_player(player, 2, 7, board) and self.is_player(player, 2, 12, board) or \
+            self.is_player(player, 2, 7, board) and self.is_player(player, 12, 20, board))),
+
+            (board[5] is 0 and (self.is_player(player, 6, 7, board) and self.is_player(player, 3, 6, board) or \
+            self.is_player(player, 0, 3, board) and self.is_player(player, 3, 6, board))),
+
+            (board[6] is 0 and (self.is_player(player, 5, 7, board) and self.is_player(player, 5, 14, board) or \
+            self.is_player(player, 14, 22, board) and self.is_player(player, 5, 14, board))),
+
+            (board[7] is 0 and (self.is_player(player, 5, 6, board) and self.is_player(player, 6, 4, board) or \
+            self.is_player(player, 2, 4, board) and self.is_player(player, 6, 4, board))),
+
+            (board[8] is 0 and (self.is_player(player, 9, 10, board) and self.is_player(player, 10, 11, board) or \
+            self.is_player(player, 11, 13, board) and self.is_player(player, 10, 11, board))),
+
+            (board[9] is 0 and (self.is_player(player, 1, 17, board) and self.is_player(player, 8, 10, board))),
+
+            (board[10] is 0 and (self.is_player(player, 8, 9, board) and self.is_player(player, 9, 12, board) or \
+            self.is_player(player, 12, 15, board) and self.is_player(player, 9, 12, board))),
+
+            (board[11] is 0 and (self.is_player(player, 3, 19, board) and self.is_player(player, 8, 13, board))),
+
+            (board[12] is 0 and (self.is_player(player, 4, 20, board) and self.is_player(player, 10, 15, board))),
+
+            (board[13] is 0 and (self.is_player(player, 8, 11, board) and self.is_player(player, 11, 14, board) or \
+            self.is_player(player, 14, 15, board) and self.is_player(player, 11, 14, board))),
+
+            (board[14] is 0 and (self.is_player(player, 6, 22, board) and self.is_player(player, 13, 15, board))),
+
+            (board[15] is 0 and (self.is_player(player, 13, 14, board) and self.is_player(player, 12, 14, board) or \
+            self.is_player(player, 10, 12, board) and self.is_player(player, 12, 14, board))),
+
+            (board[16] is 0 and (self.is_player(player, 17, 18, board) and self.is_player(player, 18, 19, board) or \
+            self.is_player(player, 19, 21, board) and self.is_player(player, 18, 19, board))),
+
+            (board[17] is 0 and (self.is_player(player, 16, 18, board) and self.is_player(player, 16, 9, board) or \
+            self.is_player(player, 1, 9, board) and self.is_player(player, 16, 18, board))),
+
+            (board[18] is 0 and (self.is_player(player, 16, 17, board) and self.is_player(player, 17, 20, board) or \
+            self.is_player(player, 20, 23, board) and self.is_player(player, 17, 20, board))),
+
+            (board[19] is 0 and (self.is_player(player, 16, 21, board) and self.is_player(player, 16, 11, board) or \
+            self.is_player(player, 3, 11, board) and self.is_player(player, 16, 21, board))),
+
+            (board[20] is 0 and (self.is_player(player, 18, 23, board) and self.is_player(player, 12, 18, board) or \
+            self.is_player(player, 4, 12, board) and self.is_player(player, 18, 23, board))),
+
+            (board[21] is 0 and (self.is_player(player, 16, 19, board) and self.is_player(player, 19, 22, board) or \
+            self.is_player(player, 22, 23, board) and self.is_player(player, 19, 22, board))),
+
+            (board[22] is 0 and (self.is_player(player, 21, 23, board) and self.is_player(player, 14, 21, board) or \
+            self.is_player(player, 6, 14, board) and self.is_player(player, 21, 23, board))),
+
+            (board[23] is 0 and (self.is_player(player, 18, 20, board) and self.is_player(player, 20, 22, board) or \
+            self.is_player(player, 21, 22, board) and self.is_player(player, 20, 22, board)))
+        ]
+
+        return diagonal[cell]
 
     # state = (minmaxplayer,direction)
     # direction = (pos, soldier, dead_opponent_pos)
