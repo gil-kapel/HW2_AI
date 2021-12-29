@@ -44,16 +44,16 @@ class MiniMax(SearchAlgos):
             else:
                 return self.utility(state), None
         if maximizing_player:
-            curr_max = -np.inf
+            curr_max = -np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, False)
-                curr_max = max(curr[0], curr_max[0])
+                curr_max = (curr[0], c[2]) if curr[0] > curr_max[0] else curr_max
             return curr_max
         else:
-            curr_min = np.inf
+            curr_min = np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, True)
-                curr_min = min(curr[0], curr_min[0])
+                curr_min = (curr[0], c[2]) if curr[0] < curr_min[0] else curr_min
             return curr_min
 
 class AlphaBeta(SearchAlgos):
