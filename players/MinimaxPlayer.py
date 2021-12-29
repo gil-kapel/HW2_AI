@@ -13,9 +13,11 @@ import copy
 class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        self.turn_count = 0   # increase when make moves
+        self.turn_count = -1   # increase when make moves
         self.player_pos = np.full(9, -1)
         self.rival_pos = np.full(9, -1)
+        self.player_index = -1
+        self.rival_index = -1
         #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -37,6 +39,15 @@ class Player(AbstractPlayer):
             - direction: tuple, specifing the Player's movement
             :return: move = (pos, soldier, dead_opponent_pos)
         """
+        if self.turn_count < 1:
+            if self.turn_count == -1:
+                self.player_index = 1
+                self.rival_index = 2
+            else:
+                self.player_index = 2
+                self.rival_index = 1
+            self.turn_count += 1
+
         start = time.time()
         end = start + time_limit
         max_value = -np.inf
@@ -47,8 +58,8 @@ class Player(AbstractPlayer):
         minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         """"########################## check if 1 is enough #########################"""
         while end > time.time() + 1 and depth <= 2:
-            value, direction = minimax.search((copy.deepcopy(self), 1, best_move), depth, True)
-            if value > max_value:
+            value, direction = minimax.search((copy.deepcopy(self), self.player_index, best_move), depth, True)
+            if value >= max_value:
                 best_move = direction
                 max_value = value
             depth += 1
@@ -56,7 +67,7 @@ class Player(AbstractPlayer):
         cell, my_soldier, rival_soldier = best_move
         self.turn_count += 1
         self.board[self.player_pos[my_soldier]] = 0
-        self.board[cell] = 1
+        self.board[cell] = self.player_index
         self.player_pos[my_soldier] = cell
         if rival_soldier != -1:
             self.board[self.rival_pos[rival_soldier]] = 0
@@ -73,23 +84,24 @@ class Player(AbstractPlayer):
         rival_pos, rival_soldier, my_dead_pos = move
 
         if self.turn_count < 9:
-            self.board[rival_pos] = 2
+            self.board[rival_pos] = self.rival_index
             self.rival_pos[rival_soldier] = rival_pos
         else:
             rival_prev_pos = self.rival_pos[rival_soldier]
             self.board[rival_prev_pos] = 0
-            self.board[rival_pos] = 2
+            self.board[rival_pos] = self.rival_index
             self.rival_pos[rival_soldier] = rival_pos
         if my_dead_pos != -1:
             self.board[my_dead_pos] = 0
             dead_soldier = int(np.where(self.player_pos == my_dead_pos)[0][0])
             self.player_pos[dead_soldier] = -2
+        self.turn_count += 1
 
     ########## helper functions in class ##########
     # TODO: add here helper functions in class, if needed
 
-    def check_end_game(self, player, player_idx : int) -> bool:
-        if player_idx == 1:
+    def check_end_game(self, player) -> bool:
+        if self.player_index == 1:
             dead = np.where(player.player_pos != -2)[0]
         else:
             dead = np.where(player.rival_pos != -2)[0]
@@ -115,52 +127,55 @@ class Player(AbstractPlayer):
         rival_mill_num = 0
         incomplete_mills = 0
         rival_incomplete_mills = 0
-        blocked_soldiers = 0
+        blocked_player_soldiers = 0
         rival_blocked_soldiers = 0
         incomplete_mills_that_player_cant_block = 0
         incomplete_mills_that_rival_cant_block = 0
         diagonal_placement = 0
         player = state[0]
+        player_index = self.player_index
+        rival_index = self.rival_index
         board = player.board
-        for x in board:
+        for index, x in enumerate(board):
             cell = int(x)
-            if cell == 1:
-                if player.is_mill(cell):
-                    mill_num += 1
-                if player.check_if_blocked(cell, 1, board):
-                    blocked_soldiers += 1
-                if player.check_next_mill(cell, 1):
-                    incomplete_mills += 1
-                if player.is_unblocked_mill(cell, 1, board):
-                    incomplete_mills_that_rival_cant_block += 1
-            elif cell == 2:
-                if player.is_mill(cell):
-                    rival_mill_num += 1
-                if player.check_if_blocked(cell, 2, board):
+            if cell == player_index:
+                if player.is_mill(index):
+                    mill_num += 1/3
+                if player.check_if_blocked(index, board):
+                    blocked_player_soldiers += 1
+            elif cell == rival_index:
+                if player.is_mill(index):
+                    rival_mill_num += 1/3
+                if player.check_if_blocked(index, board):
                     rival_blocked_soldiers += 1
-                if player.check_next_mill(cell, 2):
+            elif cell == 0:
+                if player.check_next_mill(index, player_index):
+                    incomplete_mills += 1
+                if player.check_next_mill(index, rival_index):
                     rival_incomplete_mills += 1
-                if player.is_unblocked_mill(cell, 2, board):
+                if player.is_unblocked_mill(index, player_index, board):
+                    incomplete_mills_that_rival_cant_block += 1
+                if player.is_unblocked_mill(index, rival_index, board):
                     incomplete_mills_that_player_cant_block += 1
-            # elif cell == 0:
-            # if player.is_diagonal(cell):
-            #     diagonal_placement += 1
+                # if player.is_diagonal(cell):
+                #     diagonal_placement += 1
         if player.turn_count < 9:
-            y = 0.2 * (mill_num - rival_mill_num) + \
+            y = 1 * (mill_num - rival_mill_num) + \
                    0 * diagonal_placement + \
-                   0.2 * int(incomplete_mills == 2) + \
-                   0.2 * int(rival_incomplete_mills == 0) + \
-                   0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
-                   0.2 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+                   1 * int(incomplete_mills >= 2) + \
+                   1 * (incomplete_mills - rival_incomplete_mills) + \
+                   0 * int(rival_incomplete_mills == 0) + \
+                   0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
+                   0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
             return y
         else:
-            return 0.2 * incomplete_mills + \
-                   0.2 * (incomplete_mills - rival_incomplete_mills) + \
-                   0.9 * (mill_num - rival_mill_num) + \
-                   0.2 * (rival_blocked_soldiers - blocked_soldiers) + \
-                   0.2 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+            return 0 * incomplete_mills + \
+                   1 * (incomplete_mills - rival_incomplete_mills) + \
+                   1 * (mill_num - rival_mill_num) + \
+                   0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
+                   0 * (incomplete_mills_that_rival_cant_block - 10*incomplete_mills_that_player_cant_block)
 
-    def check_if_blocked(self, position, player, board=None):
+    def check_if_blocked(self, position, board=None):
         """
         Function to check if a player can make a mill in the next move.
         :param position: curren position
@@ -168,12 +183,11 @@ class Player(AbstractPlayer):
         :param player: 1/2
         :return:
         """
-        rival = 3 - player
         if board is None:
             board = self.board
 
         for i in utils.get_directions(position):
-            if board[i] == 0:
+            if board[i] == 0:  # need to be changed
                 return False
         return True
 
@@ -187,6 +201,7 @@ class Player(AbstractPlayer):
         """
         if board is None:
             board = self.board
+
         blocked = [
             (board[0] == 0 and (self.is_player(player, 3, 5, board) and self.is_player(player, 1, 3, board) or \
              self.is_player(player, 1, 2, board) and self.is_player(player, 1, 3, board))),
@@ -336,34 +351,41 @@ class Player(AbstractPlayer):
 
     # direction = (pos, soldier, dead_opponent_pos)
     def succ(self, player, player_idx, direction):
-        ## direction only has meaning in return
-        ## direction (cell,player_soldier,dead_soldier)
+        # direction only has meaning in return
+        # direction (cell,player_soldier,dead_soldier)
         # player_pos[player_soldier] = cell
         # if dead_soldier != -1
-        #     rival[dead_soldier] = -1
+        # rival[dead_soldier] = -1
+
         if player_idx == 2:
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
-        ## PHASE 1
-        if player.turn_count < 9:
+        # PHASE 1
+        if player.turn_count < 18:
+            if self.turn_count > 11:
+                print()
+            if -1 not in player.player_pos:
+                print()
+            soldier_that_moved = int(np.where(player.player_pos == -1)[0][0])
             for i in range(24):
                 if (i not in player.rival_pos) and (i not in player.player_pos):
                     player2 = copy.deepcopy(player)
-                    player2.player_pos[player.turn_count-1] = i
+                    player2.player_pos[soldier_that_moved] = i
                     player2.board[i] = player_idx
                     player2.turn_count += 1
-                    if player.is_mill(i):
-                        for index, to_kill in enumerate(player.rival_pos):
-                            if to_kill != -1 and not player.is_mill(to_kill):
+                    if player2.is_mill(i):
+                        for index, to_kill in enumerate(player2.rival_pos):
+                            if to_kill != -1 and not player2.is_mill(to_kill):
                                 player3 = copy.deepcopy(player2)
-                                player3.board[player.rival_pos[index]] = 0
+                                kill_index = player3.rival_pos[index]
+                                player3.board[kill_index] = 0
                                 player3.rival_pos[index] = -2
-                                yield player3, 3 - player_idx, (i, player.turn_count, index)
+                                yield player3, 3 - player_idx, (i, soldier_that_moved, kill_index)
                     else:
-                        yield player2, 3 - player_idx, (i, player.turn_count, -1)
+                        yield player2, 3 - player_idx, (i, soldier_that_moved, -1)
         else:
-            ## PHASE 2
+            # PHASE 2
             for i in range(9):
                 if player.player_pos[i] in [-1, -2]:
                     continue
@@ -374,14 +396,15 @@ class Player(AbstractPlayer):
                         player2.board[player.player_pos[i]] = 0
                         player2.board[d] = player_idx
                         player2.player_pos[i] = d
+                        player2.turn_count += 1
                         if player2.is_mill(d):
-                            for index, to_kill in enumerate(player.rival_pos):
-                                if not player.is_mill(to_kill):
+                            for index, to_kill in enumerate(player2.rival_pos):
+                                if not player2.is_mill(to_kill):
                                     player3 = copy.deepcopy(player2)
-                                    player3.board[player.rival_pos[index]] = 0
+                                    kill_index = player3.rival_pos[index]
+                                    player3.board[kill_index] = 0
                                     player3.rival_pos[index] = -2
-                                    player3.turn_count += 1
-                                    yield player3, 3 - player_idx, (d, i, index)
+                                    yield player3, 3 - player_idx, (d, i, kill_index)
                         else:
                             yield player2, 3 - player_idx, (d, i, -1)
 

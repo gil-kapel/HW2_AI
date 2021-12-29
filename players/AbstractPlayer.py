@@ -116,4 +116,5 @@ class AbstractPlayer:
             # If there is some player on that position
             return self.check_next_mill(position, p, board)
         else:
+
             return False

@@ -30,7 +30,6 @@ class Player(AbstractPlayer):
 
     def set_rival_move(self, move):
         rival_pos, rival_soldier, my_dead_pos = move
-
         if self.turn < 18:
             self.board[rival_pos] = 2
             self.rival_pos[rival_soldier] = rival_pos
