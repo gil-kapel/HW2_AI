@@ -146,15 +146,6 @@ class Player(AbstractPlayer):
         incomplete_mills_that_rival_cant_block = 0
         diagonal_placement = 0
         player = state[0]
-        player_idx = state[1]
-        if player_idx != player.real_index:
-            player = copy.deepcopy(player)
-            tmp = player.player_pos
-            player.player_pos = player.rival_pos
-            player.rival_pos = tmp
-            player.player_index = player.rival_index
-            player.rival_index = 3 - player.player_index
-
         player_index = self.player_index
         rival_index = self.rival_index
         board = player.board
@@ -197,6 +188,73 @@ class Player(AbstractPlayer):
                    0 * (mill_num - rival_mill_num) + \
                    0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
                    0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+
+    # direction = (pos, soldier, dead_opponent_pos)
+    def succ(self, player, player_idx, direction):
+        # direction only has meaning in return
+        # direction (cell,player_soldier,dead_soldier)
+        # player_pos[player_soldier] = cell
+        # if dead_soldier != -1
+        # rival[dead_soldier] = -1
+        if player_idx != player.player_index:
+            player.switch_player_rival()
+        # PHASE 1
+        if player.turn_count < 18:
+            soldier_that_moved = int(np.where(player.player_pos == -1)[0][0])
+            for i in range(24):
+                if (i not in player.rival_pos) and (i not in player.player_pos):
+                    player2 = copy.deepcopy(player)
+                    player2.player_pos[soldier_that_moved] = i
+                    player2.board[i] = player_idx
+                    player2.turn_count += 1
+                    if player2.is_mill(i):
+                        for index, to_kill in enumerate(player2.rival_pos):
+                            if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
+                                player3 = copy.deepcopy(player2)
+                                kill_index = player3.rival_pos[index]
+                                player3.board[kill_index] = 0
+                                player3.rival_pos[index] = -2
+                                if player_idx != player.player_index:
+                                    player3.switch_player_rival()
+                                yield player3, 3 - player_idx, (i, soldier_that_moved, kill_index)
+                    else:
+                        if player_idx != player.player_index:
+                            player2.switch_player_rival()
+                        yield player2, 3 - player_idx, (i, soldier_that_moved, -1)
+        else:
+            # PHASE 2
+            for i in range(9):
+                if player.player_pos[i] in [-1, -2]:
+                    continue
+                directions = utils.get_directions(player.player_pos[i])
+                for d in directions:
+                    if (d not in player.rival_pos) and (d not in player.player_pos):
+                        player2 = copy.deepcopy(player)
+                        player2.board[player.player_pos[i]] = 0
+                        player2.board[d] = player_idx
+                        player2.player_pos[i] = d
+                        player2.turn_count += 1
+                        if player2.is_mill(d):
+                            for index, to_kill in enumerate(player2.rival_pos):
+                                if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
+                                    player3 = copy.deepcopy(player2)
+                                    kill_index = player3.rival_pos[index]
+                                    player3.board[kill_index] = 0
+                                    player3.rival_pos[index] = -2
+                                    if player_idx != player.player_index:
+                                        player3.switch_player_rival()
+                                    yield player3, 3 - player_idx, (d, i, kill_index)
+                        else:
+                            if player_idx != player.player_index:
+                                player2.switch_player_rival()
+                            yield player2, 3 - player_idx, (d, i, -1)
+
+    def switch_player_rival(self):
+        tmp = self.player_pos
+        self.player_pos = self.rival_pos
+        self.rival_pos = tmp
+        self.player_index = self.rival_index
+        self.rival_index = 3 - self.player_index
 
     def check_if_blocked(self, position, board=None):
         """
@@ -350,64 +408,3 @@ class Player(AbstractPlayer):
             ]
 
         return diagonal[cell]
-
-    # direction = (pos, soldier, dead_opponent_pos)
-    def succ(self, player, player_idx, direction):
-        # direction only has meaning in return
-        # direction (cell,player_soldier,dead_soldier)
-        # player_pos[player_soldier] = cell
-        # if dead_soldier != -1
-        # rival[dead_soldier] = -1
-        if player_idx != player.player_index:
-            player = copy.deepcopy(player)
-            tmp = player.player_pos
-            player.player_pos = player.rival_pos
-            player.rival_pos = tmp
-            player.player_index = player.rival_index
-            player.rival_index = 3 - player.player_index
-        # PHASE 1
-        if player.turn_count < 18:
-            soldier_that_moved = int(np.where(player.player_pos == -1)[0][0])
-            for i in range(24):
-                if (i not in player.rival_pos) and (i not in player.player_pos):
-                    player2 = copy.deepcopy(player)
-                    player2.player_pos[soldier_that_moved] = i
-                    player2.board[i] = player_idx
-                    player2.turn_count += 1
-                    if player2.is_mill(i):
-                        for index, to_kill in enumerate(player2.rival_pos):
-                            if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
-                                player3 = copy.deepcopy(player2)
-                                kill_index = player3.rival_pos[index]
-                                player3.board[kill_index] = 0
-                                player3.rival_pos[index] = -2
-                                if player_idx != player.player_index:
-                                    tmp = player.player_pos
-                                    player.player_pos = player.rival_pos
-                                    player.rival_pos = tmp
-                                yield player3, 3 - player_idx, (i, soldier_that_moved, kill_index)
-                    else:
-                        yield player2, 3 - player_idx, (i, soldier_that_moved, -1)
-        else:
-            # PHASE 2
-            for i in range(9):
-                if player.player_pos[i] in [-1, -2]:
-                    continue
-                directions = utils.get_directions(player.player_pos[i])
-                for d in directions:
-                    if (d not in player.rival_pos) and (d not in player.player_pos):
-                        player2 = copy.deepcopy(player)
-                        player2.board[player.player_pos[i]] = 0
-                        player2.board[d] = player_idx
-                        player2.player_pos[i] = d
-                        player2.turn_count += 1
-                        if player2.is_mill(d):
-                            for index, to_kill in enumerate(player2.rival_pos):
-                                if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
-                                    player3 = copy.deepcopy(player2)
-                                    kill_index = player3.rival_pos[index]
-                                    player3.board[kill_index] = 0
-                                    player3.rival_pos[index] = -2
-                                    yield player3, 3 - player_idx, (d, i, kill_index)
-                        else:
-                            yield player2, 3 - player_idx, (d, i, -1)
