@@ -3,13 +3,17 @@ MiniMax Player with AlphaBeta pruning and global time
 """
 from players.AbstractPlayer import AbstractPlayer
 #TODO: you can import more modules, if needed
-
+import numpy as np
+import utils
+import time
+import SearchAlgos
+import copy
+from players.AlphabetaPlayer import Player as AlphaBeta
 
 class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time) # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
-
+        self.global_player = AlphaBeta(game_time)
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -19,9 +23,8 @@ class Player(AbstractPlayer):
             - board: np.array, of the board.
         No output is expected.
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-    
+        self.global_player.set_game_params(board)
+
 
     def make_move(self, time_limit):
         """Make move with this Player.
@@ -30,8 +33,21 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+
+        if self.global_player.player1.turn_count < 10:
+            turn_time_limit = self.game_time * 0.01   # 5 turns (player turns) - 55% of game_time is left
+        elif self.global_player.player1.turn_count < 18:
+            turn_time_limit = self.game_time * 0.1  # 9 turns (player turns) - 30% of game_time is left
+        elif self.global_player.player1.turn_count < 30:
+            turn_time_limit = self.game_time * 0.1  # 15 turns (player turns) - 10% of game_time is left
+        else:
+            turn_time_limit = self.game_time * 0.01  # 60 turns = 0.01% of game_time
+
+        start = time.time()
+        move = self.global_player.make_move(5)
+        self.game_time -= time.time() - start
+        return move
+
 
 
     def set_rival_move(self, move):
@@ -41,7 +57,9 @@ class Player(AbstractPlayer):
         No output is expected
         """
         #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+
+        self.global_player.set_rival_move(move)
+
 
 
     ########## helper functions in class ##########
