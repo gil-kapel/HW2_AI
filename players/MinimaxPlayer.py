@@ -20,6 +20,7 @@ class Player(AbstractPlayer):
         self.rival_pos = np.full(9, -1)
         self.player_index = -1
         self.rival_index = -1
+        self.real_index = -1
         self.AlphaBeta = False
         # TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
 
@@ -45,9 +46,11 @@ class Player(AbstractPlayer):
         if self.turn_count < 1:
             if self.turn_count == -1:
                 self.player_index = 1
+                self.real_index = 1
                 self.rival_index = 2
             else:
                 self.player_index = 2
+                self.real_index = 2
                 self.rival_index = 1
             self.turn_count += 1
 
@@ -146,12 +149,13 @@ class Player(AbstractPlayer):
         player_index = self.player_index
         rival_index = self.rival_index
         player_idx = state[1]
-        if player_idx != player.player_index:
+        if player_idx != player.real_index:
             player = copy.deepcopy(player)
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
-
+            player.player_index = player.rival_index
+            player.rival_index = 3 - player.player_index
 
         board = player.board
         for index, x in enumerate(board):
@@ -360,6 +364,8 @@ class Player(AbstractPlayer):
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
+            player.player_index = player.rival_index
+            player.rival_index = 3 - player.player_index
         # PHASE 1
         if player.turn_count < 18:
             soldier_that_moved = int(np.where(player.player_pos == -1)[0][0])
