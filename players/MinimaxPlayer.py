@@ -146,6 +146,14 @@ class Player(AbstractPlayer):
         player = state[0]
         player_index = self.player_index
         rival_index = self.rival_index
+        player_idx = state[1]
+        if player_idx != player.player_index:
+            player = copy.deepcopy(player)
+            tmp = player.player_pos
+            player.player_pos = player.rival_pos
+            player.rival_pos = tmp
+
+
         board = player.board
         for index, x in enumerate(board):
             cell = int(x)
@@ -372,8 +380,6 @@ class Player(AbstractPlayer):
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
-            player.rival_index = player.player_index
-            player.player_index = player_idx
         # PHASE 1
         if player.turn_count < 18:
             if self.turn_count > 11:
@@ -394,6 +400,10 @@ class Player(AbstractPlayer):
                                 kill_index = player3.rival_pos[index]
                                 player3.board[kill_index] = 0
                                 player3.rival_pos[index] = -2
+                                if player_idx != player.player_index:
+                                    tmp = player.player_pos
+                                    player.player_pos = player.rival_pos
+                                    player.rival_pos = tmp
                                 yield player3, 3 - player_idx, (i, soldier_that_moved, kill_index)
                     else:
                         yield player2, 3 - player_idx, (i, soldier_that_moved, -1)
