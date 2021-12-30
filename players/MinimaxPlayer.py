@@ -371,7 +371,7 @@ class Player(AbstractPlayer):
                     player2.turn_count += 1
                     if player2.is_mill(i):
                         for index, to_kill in enumerate(player2.rival_pos):
-                            if to_kill != -1 and not player2.is_mill(to_kill):
+                            if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
                                 player3 = copy.deepcopy(player2)
                                 kill_index = player3.rival_pos[index]
                                 player3.board[kill_index] = 0
@@ -398,7 +398,7 @@ class Player(AbstractPlayer):
                         player2.turn_count += 1
                         if player2.is_mill(d):
                             for index, to_kill in enumerate(player2.rival_pos):
-                                if not player2.is_mill(to_kill):
+                                if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
                                     player3 = copy.deepcopy(player2)
                                     kill_index = player3.rival_pos[index]
                                     player3.board[kill_index] = 0
