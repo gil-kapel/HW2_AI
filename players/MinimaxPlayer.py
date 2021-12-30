@@ -139,7 +139,7 @@ class Player(AbstractPlayer):
         if state[0].player_index == 1:
             return state[0].heuristic_value()
         else:
-            player = copy.deepcopy(state[0])
+            player = state[0]
             tmp = player.player_pos
             player.player_pos = player.rival_pos
             player.rival_pos = tmp
@@ -183,7 +183,7 @@ class Player(AbstractPlayer):
                 #     incomplete_mills_that_player_cant_block += 1
                 # if self.is_diagonal(cell):
                 #     diagonal_placement += 1
-        if self.turn_count < 9:
+        if self.turn_count < 18:
             y = 0 * (mill_num - rival_mill_num) + \
                 0 * diagonal_placement + \
                 0 * int(incomplete_mills >= 2) + \
@@ -194,8 +194,8 @@ class Player(AbstractPlayer):
                 0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
             return y
         else:
-            return 0 * incomplete_mills + \
-                   1 * (incomplete_mills - rival_incomplete_mills) + \
+            return 1 * incomplete_mills + \
+                   0 * (incomplete_mills - rival_incomplete_mills) + \
                    0 * (mill_num - rival_mill_num) + \
                    0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
                    0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
