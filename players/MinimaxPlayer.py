@@ -66,7 +66,7 @@ class Player(AbstractPlayer):
         else:
             minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         end_phase = 0
-        while end - time.time() > 10 * end_phase:
+        while end - time.time() > 63 * end_phase:
             start_phase = time.time()
             value, direction = minimax.search((copy.deepcopy(self), self.player_index, best_move), depth, True)
             if value >= max_value:
@@ -146,8 +146,6 @@ class Player(AbstractPlayer):
         incomplete_mills_that_rival_cant_block = 0
         diagonal_placement = 0
         player = state[0]
-        player_index = self.player_index
-        rival_index = self.rival_index
         player_idx = state[1]
         if player_idx != player.real_index:
             player = copy.deepcopy(player)
@@ -157,45 +155,48 @@ class Player(AbstractPlayer):
             player.player_index = player.rival_index
             player.rival_index = 3 - player.player_index
 
+        player_index = self.player_index
+        rival_index = self.rival_index
         board = player.board
         for index, x in enumerate(board):
             cell = int(x)
             if cell == player_index:
                 if player.is_mill(index):
                     mill_num += 1 / 3
-                if player.check_if_blocked(index, board):
-                    blocked_player_soldiers += 1
+                # if player.check_if_blocked(index, board):
+                #     blocked_player_soldiers += 1
             elif cell == rival_index:
                 if player.is_mill(index):
                     rival_mill_num += 1 / 3
-                if player.check_if_blocked(index, board):
-                    rival_blocked_soldiers += 1
+                # if player.check_if_blocked(index, board):
+                #     rival_blocked_soldiers += 1
             elif cell == 0:
-                if player.check_next_mill(index, player_index):
+                if player.check_next_mill(index, player_index, board):
                     incomplete_mills += 1
-                if player.check_next_mill(index, rival_index):
+                if player.check_next_mill(index, rival_index, board):
                     rival_incomplete_mills += 1
-                if player.is_unblocked_mill(index, player_index, board):
-                    incomplete_mills_that_rival_cant_block += 1
-                if player.is_unblocked_mill(index, rival_index, board):
-                    incomplete_mills_that_player_cant_block += 1
+                # if player.is_unblocked_mill(index, player_index, board):
+                #     incomplete_mills_that_rival_cant_block += 1
+                # if player.is_unblocked_mill(index, rival_index, board):
+                #     incomplete_mills_that_player_cant_block += 1
                 # if player.is_diagonal(cell):
                 #     diagonal_placement += 1
         if player.turn_count < 9:
-            y = 100 * (mill_num - rival_mill_num) + \
-                10 * diagonal_placement + \
-                50 * int(incomplete_mills >= 2) + \
-                100 * (incomplete_mills - rival_incomplete_mills) + \
-                1 * int(rival_incomplete_mills == 0) + \
-                1 * (rival_blocked_soldiers - blocked_player_soldiers) + \
-                1 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+            y = 0 * (mill_num - rival_mill_num) + \
+                0 * diagonal_placement + \
+                0 * int(incomplete_mills >= 2) + \
+                1 * incomplete_mills + \
+                -100 * rival_incomplete_mills + \
+                0 * int(rival_incomplete_mills == 0) + \
+                0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
+                0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
             return y
         else:
-            return 1 * incomplete_mills + \
+            return 0 * incomplete_mills + \
                    1 * (incomplete_mills - rival_incomplete_mills) + \
-                   10 * (mill_num - rival_mill_num) + \
-                   1 * (rival_blocked_soldiers - blocked_player_soldiers) + \
-                   5 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+                   0 * (mill_num - rival_mill_num) + \
+                   0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
+                   0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
 
     def check_if_blocked(self, position, board=None):
         """
@@ -297,13 +298,13 @@ class Player(AbstractPlayer):
         return blocked[position]
 
     def diagonal_helper(self, ours, position1, position2, position3, board=None):
-        if board == None:
+        if board is None:
             board = self.board
         return board[ours] == self.player_index and board[position1] == 0 and board[position2] == 0 and \
                board[position3] == 0
 
     def is_diagonal(self, cell, player, board=None):  # not finished
-        if board == None:
+        if board is None:
             board = self.board
         diagonal = [
             (board[0] == 0 and (self.diagonal_helper(11, 3, 5, 19, board) or self.diagonal_helper(9, 1, 2, 17, board)
@@ -311,10 +312,8 @@ class Player(AbstractPlayer):
                                 or self.diagonal_helper(7, 3, 5, 6, board) or self.diagonal_helper(7, 1, 2, 4, board))),
 
             (board[1] == 0 and (self.diagonal_helper(3, 0, 5, 2, board) or self.diagonal_helper(4, 0, 2, 7, board)
-                                or self.diagonal_helper(8, 9, 10, 17, board) or self.diagonal_helper(10, 8, 10, 17,
-                                                                                                     board)
-                                or self.diagonal_helper(16, 9, 17, 18, board) or self.diagonal_helper(18, 9, 17, 16,
-                                                                                                      board)
+                                or self.diagonal_helper(8, 9, 10, 17, board) or self.diagonal_helper(10, 8,10,17, board)
+                                or self.diagonal_helper(16, 9, 17, 18, board) or self.diagonal_helper(18,9,17,16, board)
                                 or self.diagonal_helper(5, 0, 2, 3, board) or self.diagonal_helper(7, 0, 2, 4, board))),
 
             (board[2] == 0 and (self.diagonal_helper(9, 0, 1, 17, board) or self.diagonal_helper(12, 4, 20, 7, board)
@@ -326,7 +325,7 @@ class Player(AbstractPlayer):
                                 or self.diagonal_helper(16, 11, 19, 21, board) or self.diagonal_helper(21, 11, 19, 16,
                                                                                                        board)
                                 or self.diagonal_helper(1, 0, 2, 5, board) or self.diagonal_helper(6, 0, 5, 7, board)
-                                or self.diagonal_helper(2, 0, 1, 5, board) or self.diagonal_helper(7, 0, 5, 6, board)))
+                                or self.diagonal_helper(2, 0, 1, 5, board) or self.diagonal_helper(7, 0, 5, 6, board))),
 
             (board[4] == 0 and (self.diagonal_helper(11, 3, 5, 19, board) or self.diagonal_helper(9, 1, 2, 17, board))),
             (board[5] == 0 and (self.diagonal_helper(11, 3, 5, 19, board) or self.diagonal_helper(9, 1, 2, 17, board))),
