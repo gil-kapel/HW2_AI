@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="a9049163-a410-44c2-9542-fda9f4b8fc44" name="Default Changelist" comment="minimax init">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players/MinimaxPlayer.py" beforeDir="false" afterPath="$PROJECT_DIR$/players/MinimaxPlayer.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -190,11 +189,6 @@
           <url>file://$PROJECT_DIR$/SearchAlgos.py</url>
           <line>49</line>
           <option name="timeStamp" value="39" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/players/MinimaxPlayer.py</url>
-          <line>176</line>
-          <option name="timeStamp" value="60" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>

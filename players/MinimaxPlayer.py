@@ -136,6 +136,18 @@ class Player(AbstractPlayer):
         self.AlphaBeta = True
 
     def calculate_state_heuristic(self, state):
+        if state[0].player_index == 1:
+            return state[0].heuristic_value()
+        else:
+            player = copy.deepcopy(state[0])
+            tmp = player.player_pos
+            player.player_pos = player.rival_pos
+            player.rival_pos = tmp
+            player.player_index = player.rival_index
+            player.rival_index = 3 - player.player_index
+            return player.heuristic_value()
+
+    def heuristic_value(self):
         mill_num = 0
         rival_mill_num = 0
         incomplete_mills = 0
@@ -145,34 +157,33 @@ class Player(AbstractPlayer):
         incomplete_mills_that_player_cant_block = 0
         incomplete_mills_that_rival_cant_block = 0
         diagonal_placement = 0
-        player = state[0]
         player_index = self.player_index
         rival_index = self.rival_index
-        board = player.board
+        board = self.board
         for index, x in enumerate(board):
             cell = int(x)
             if cell == player_index:
-                if player.is_mill(index):
+                if self.is_mill(index):
                     mill_num += 1 / 3
-                # if player.check_if_blocked(index, board):
+                # if self.check_if_blocked(index, board):
                 #     blocked_player_soldiers += 1
             elif cell == rival_index:
-                if player.is_mill(index):
+                if self.is_mill(index):
                     rival_mill_num += 1 / 3
-                # if player.check_if_blocked(index, board):
+                # if self.check_if_blocked(index, board):
                 #     rival_blocked_soldiers += 1
             elif cell == 0:
-                if player.check_next_mill(index, player_index, board):
+                if self.check_next_mill(index, player_index, board):
                     incomplete_mills += 1
-                if player.check_next_mill(index, rival_index, board):
+                if self.check_next_mill(index, rival_index, board):
                     rival_incomplete_mills += 1
-                # if player.is_unblocked_mill(index, player_index, board):
+                # if self.is_unblocked_mill(index, player_index, board):
                 #     incomplete_mills_that_rival_cant_block += 1
-                # if player.is_unblocked_mill(index, rival_index, board):
+                # if self.is_unblocked_mill(index, rival_index, board):
                 #     incomplete_mills_that_player_cant_block += 1
-                # if player.is_diagonal(cell):
+                # if self.is_diagonal(cell):
                 #     diagonal_placement += 1
-        if player.turn_count < 9:
+        if self.turn_count < 9:
             y = 0 * (mill_num - rival_mill_num) + \
                 0 * diagonal_placement + \
                 0 * int(incomplete_mills >= 2) + \
