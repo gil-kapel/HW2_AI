@@ -59,21 +59,24 @@ class Player(AbstractPlayer):
         max_value = -np.inf
         # direction (the new cell, soldier - 10 sized array, rival dead soldier - 10 sized array)
         best_move = (-1, -1, -1)
-        depth = 1
+        depth = 0
         # state = (self.board, self.turn_count, self.player_pos, self.rival_pos, 1, best_move)
         if self.AlphaBeta:
             minimax = SearchAlgos.AlphaBeta(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         else:
             minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.check_end_game)
         end_phase = 0
-        while end - time.time() > 63 * end_phase:
+        # while end - time.time() > 63 * end_phase:
+        # phase 1 : 24*23*...turn => turn *
+        while end - time.time() > 15 * end_phase:
             start_phase = time.time()
             value, direction = minimax.search((copy.deepcopy(self), self.player_index, best_move), depth, True)
-            if value >= max_value:
+            if value > max_value:
                 best_move = direction
                 max_value = value
-            depth += 1
             end_phase = time.time() - start_phase
+            print(f"depth : {depth} time = {end_phase}")
+            depth += 1
         # update self values
         cell, my_soldier, rival_soldier_cell = best_move
         self.turn_count += 1
@@ -136,16 +139,9 @@ class Player(AbstractPlayer):
         self.AlphaBeta = True
 
     def calculate_state_heuristic(self, state):
-        if state[0].player_index == 1:
-            return state[0].heuristic_value()
-        else:
-            player = state[0]
-            tmp = player.player_pos
-            player.player_pos = player.rival_pos
-            player.rival_pos = tmp
-            player.player_index = player.rival_index
-            player.rival_index = 3 - player.player_index
-            return player.heuristic_value()
+        player = state[0]
+        index = state[1]
+        return player.heuristic_value()
 
     def heuristic_value(self):
         mill_num = 0
@@ -194,20 +190,19 @@ class Player(AbstractPlayer):
                 0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
             return y
         else:
-            return 1 * incomplete_mills + \
-                   0 * (incomplete_mills - rival_incomplete_mills) + \
-                   0 * (mill_num - rival_mill_num) + \
-                   0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
-                   0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+            y = 0 * (mill_num - rival_mill_num) + \
+                0 * diagonal_placement + \
+                0 * int(incomplete_mills >= 2) + \
+                1 * incomplete_mills + \
+                -100 * rival_incomplete_mills + \
+                0 * int(rival_incomplete_mills == 0) + \
+                0 * (rival_blocked_soldiers - blocked_player_soldiers) + \
+                0 * (incomplete_mills_that_rival_cant_block - incomplete_mills_that_player_cant_block)
+            return y
 
     # direction = (pos, soldier, dead_opponent_pos)
     def succ(self, player, player_idx, direction):
-        # direction only has meaning in return
-        # direction (cell,player_soldier,dead_soldier)
-        # player_pos[player_soldier] = cell
-        # if dead_soldier != -1
-        # rival[dead_soldier] = -1
-        if player_idx != player.player_index:
+        if player_idx != player.real_index:
             player.switch_player_rival()
         # PHASE 1
         if player.turn_count < 18:
@@ -220,16 +215,16 @@ class Player(AbstractPlayer):
                     player2.turn_count += 1
                     if player2.is_mill(i):
                         for index, to_kill in enumerate(player2.rival_pos):
-                            if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
+                            if to_kill not in [-1, -2]:
                                 player3 = copy.deepcopy(player2)
                                 kill_index = player3.rival_pos[index]
                                 player3.board[kill_index] = 0
                                 player3.rival_pos[index] = -2
-                                if player_idx != player.player_index:
+                                if player_idx != player.real_index:
                                     player3.switch_player_rival()
                                 yield player3, 3 - player_idx, (i, soldier_that_moved, kill_index)
                     else:
-                        if player_idx != player.player_index:
+                        if player_idx != player.real_index:
                             player2.switch_player_rival()
                         yield player2, 3 - player_idx, (i, soldier_that_moved, -1)
         else:
@@ -247,16 +242,16 @@ class Player(AbstractPlayer):
                         player2.turn_count += 1
                         if player2.is_mill(d):
                             for index, to_kill in enumerate(player2.rival_pos):
-                                if to_kill not in [-1, -2] and not player2.is_mill(to_kill):
+                                if to_kill not in [-1, -2]:
                                     player3 = copy.deepcopy(player2)
                                     kill_index = player3.rival_pos[index]
                                     player3.board[kill_index] = 0
                                     player3.rival_pos[index] = -2
-                                    if player_idx != player.player_index:
+                                    if player_idx != player.real_index:
                                         player3.switch_player_rival()
                                     yield player3, 3 - player_idx, (d, i, kill_index)
                         else:
-                            if player_idx != player.player_index:
+                            if player_idx != player.real_index:
                                 player2.switch_player_rival()
                             yield player2, 3 - player_idx, (d, i, -1)
 
