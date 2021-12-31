@@ -52,7 +52,7 @@ class MiniMax(SearchAlgos):
             curr_min = np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):
                 curr = self.search(c, depth-1, True)
-                curr_min = (curr[0], None) if curr[0] < curr_min[0] else curr_min
+                curr_min = (curr[0], c[2]) if curr[0] < curr_min[0] else curr_min
             return curr_min
 
 class AlphaBeta(SearchAlgos):
