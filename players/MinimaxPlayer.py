@@ -134,6 +134,21 @@ class Player(AbstractPlayer):
                 return False
         return True
 
+    def winning_move(self, player_pos, rival_pos):
+        if self.player_index == 1:
+            dead = np.where(player_pos != -2)[0]
+        else:
+            dead = np.where(rival_pos != -2)[0]
+        if len(dead) >= 3:
+            return False
+        for index, x in enumerate(self.rival_pos):
+            if x > -1 and not self.check_if_blocked(x):
+                return False
+        for index, x in enumerate(self.player_pos):
+            if x > -1 and not self.check_if_blocked(x):
+                return False
+        return True
+
     ########## helper functions for AlphaBeta algorithm ##########
     # TODO: add here the utility, succ, an
 
@@ -156,23 +171,25 @@ class Player(AbstractPlayer):
         rival_blocked_soldiers = 0
         rival_double_mill = 0
         player_double_mill = 0
-        player_winning_config = 1 if self.check_end_game(self.player_index) else 0
-        rival_winning_config = 1 if self.check_end_game(self.rival_index) else 0
-        player_soldier = np.count_nonzero(self.player_pos > -1)
-        rival_soldier = np.count_nonzero(self.rival_pos > -1)
+        player_winning_config = 1 if self.winning_move(self.player_pos, self.rival_pos) else 0
+        rival_winning_config = 1 if self.winning_move(self.rival_pos, self.player_pos) else 0
+        player_soldier = np.count_nonzero(self.player_pos >= -1)
+        rival_soldier = np.count_nonzero(self.rival_pos >= -1)
+        player_three_config = 1 if player_incomplete_mills >= 2 else 0
+        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         board = self.board
         for index, x in enumerate(board):
             cell = int(x)
             if cell == self.player_index:
                 if self.is_mill(index):
-                    player_mill_num += 1 / 3
+                    player_mill_num += 1
                 if self.check_if_blocked(index, board):
                     player_blocked_soldiers += 1
                 if self.is_double_mill(index):
                     player_double_mill += 1
             elif cell == self.rival_index:
                 if self.is_mill(index):
-                    rival_mill_num += 1 / 3
+                    rival_mill_num += 1
                 if self.is_double_mill(index):
                     rival_double_mill += 1
                 if self.check_if_blocked(index, board):
@@ -182,26 +199,19 @@ class Player(AbstractPlayer):
                     player_incomplete_mills += 1
                 if self.check_next_mill(index, self.player_index, board):
                     rival_incomplete_mills += 1
-                # if self.is_unblocked_mill(index, player_index, board):
-                #     incomplete_mills_that_rival_cant_block += 1
-                # if self.is_unblocked_mill(index, rival_index, board):
-                #     incomplete_mills_that_player_cant_block += 1
-                # if self.is_diagonal(cell):
-                #     diagonal_placement += 1
-        player_three_config = 1 if player_incomplete_mills >= 2 else 0
-        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         if self.turn_count < 18:
             return 26 * (player_mill_num - rival_mill_num) + \
                    10 * (player_incomplete_mills - rival_incomplete_mills) + \
-                   9 * (player_soldier - rival_soldier) + \
+                   27 * (player_soldier - rival_soldier) + \
                    1 * (player_blocked_soldiers - rival_blocked_soldiers) + \
                    7 * (player_three_config - rival_three_config) + \
                    100 * (player_winning_config - rival_winning_config)
         else:
             return 43 * (player_mill_num - rival_mill_num) + \
-                   11 * (player_soldier - rival_soldier) + \
+                   25 * (player_soldier - rival_soldier) + \
                    10 * (player_blocked_soldiers - rival_blocked_soldiers) + \
-                   100 * (player_winning_config - rival_winning_config)
+                   1000 * (player_winning_config - rival_winning_config) + \
+                   8 * (player_double_mill - rival_double_mill)
 
     # direction = (pos, soldier, dead_opponent_pos)
     def succ(self, player, player_idx, direction):
