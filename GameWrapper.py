@@ -44,7 +44,7 @@ class GameWrapper:
           :return: Boolean
           """
         if self.game.player_cant_move(player_index):
-            messages = [f'    Player {player_index} Won!']
+            messages = [f'    Player {2 - player_index} Won!']
             self.pretty_print_end_game(messages)
         else:
             return False

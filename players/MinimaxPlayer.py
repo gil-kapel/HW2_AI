@@ -63,10 +63,10 @@ class Player(AbstractPlayer):
         best_move = (-1, -1, -1)
         depth = 1
         # state = (self.board, self.turn_count, self.player_pos, self.rival_pos, 1, best_move)
-        if self.AlphaBeta:
-            minimax = SearchAlgos.AlphaBeta(self.calculate_state_heuristic, self.succ, None, self.is_goal)
-        elif self.light_player:
+        if self.light_player:
             minimax = SearchAlgos.AlphaBeta(self.calculate_simple_heuristic, self.succ, None, self.is_goal)
+        elif self.AlphaBeta or self.heavy_player:
+            minimax = SearchAlgos.AlphaBeta(self.calculate_state_heuristic, self.succ, None, self.is_goal)
         else:
             minimax = SearchAlgos.MiniMax(self.calculate_state_heuristic, self.succ, None, self.is_goal)
         end_phase = 0
@@ -74,16 +74,16 @@ class Player(AbstractPlayer):
         # while end - time.time() > 63 * end_phase:
         # phase 1 : (24-turn)*(24-turn-(depth-1))*...*() => (24-turn-(depth-1)) * int(turn/2)
         if self.heavy_player:
-            value, best_move = minimax.search((copy.deepcopy(self), self.player_index, best_move), 3, True)
+            value, best_move = minimax.search((copy.deepcopy(self), self.player_index, best_move), 2, True)
             self.update_move(best_move)
             return best_move
         elif self.light_player:
             ## change depth
-            value, best_move = minimax.search((copy.deepcopy(self), self.player_index, best_move), 3, True)
+            value, best_move = minimax.search((copy.deepcopy(self), self.player_index, best_move), 2, True)
             self.update_move(best_move)
             return best_move
         else:
-            if time_limit < 0.1 :
+            if time_limit < 0.1:
                 if self.turn_count < 18:
                     move = self.simple_stage_1_move()
                     self.turn_count += 1
@@ -173,7 +173,6 @@ class Player(AbstractPlayer):
             self.board[rival_soldier_cell] = 0
             dead_soldier = int(np.where(self.rival_pos == rival_soldier_cell)[0][0])
             self.rival_pos[dead_soldier] = -2
-        return best_move
     # heuristic of phase 1
 
     def simple_stage_1_move(self) -> tuple:
@@ -225,7 +224,6 @@ class Player(AbstractPlayer):
 
     def calculate_state_heuristic(self, state):
         player = state[0]
-        index = state[1]
         player_mill_num = 0
         rival_mill_num = 0
         player_incomplete_mills = 0
@@ -238,21 +236,19 @@ class Player(AbstractPlayer):
         rival_winning_config = 1 if player.check_won_game(player.rival_index) else 0
         player_soldier = np.count_nonzero(player.player_pos > -1)
         rival_soldier = np.count_nonzero(player.rival_pos > -1)
-        player_three_config = 1 if player_incomplete_mills >= 2 else 0
-        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         board = player.board
         for index, x in enumerate(board):
             cell = int(x)
             if cell == player.player_index:
                 if player.is_mill(index):
-                    player_mill_num += 1
+                    player_mill_num += 1/3
                 if player.check_if_blocked(index, board):
                     player_blocked_soldiers += 1
                 if player.is_double_mill(index):
                     player_double_mill += 1
             elif cell == player.rival_index:
                 if player.is_mill(index):
-                    rival_mill_num += 1
+                    rival_mill_num += 1/3
                 if player.is_double_mill(index):
                     rival_double_mill += 1
                 if player.check_if_blocked(index, board):
@@ -262,23 +258,24 @@ class Player(AbstractPlayer):
                     player_incomplete_mills += 1
                 if player.check_next_mill(index, player.player_index, board):
                     rival_incomplete_mills += 1
+        player_three_config = 1 if player_incomplete_mills >= 2 else 0
+        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         if player.turn_count < 18:
-            return 43 * (player_mill_num - rival_mill_num) + \
-                   5 * (player_incomplete_mills - rival_incomplete_mills) + \
-                   29 * player_soldier - 27 * rival_soldier + \
+            return 44 * player_mill_num - 44 * rival_mill_num + \
+                   10 * player_incomplete_mills - 10 * rival_incomplete_mills + \
+                   27 * player_soldier - 27 * rival_soldier + \
                    1 * (player_blocked_soldiers - rival_blocked_soldiers) + \
-                   7 * (player_three_config - rival_three_config) + \
+                   7 * player_three_config - 5 * rival_three_config + \
                    100 * (player_winning_config - rival_winning_config)
         else:
-            return 57 * (player_mill_num - rival_mill_num) + \
-                   25 * (player_soldier - rival_soldier) + \
+            return 57 * player_mill_num - 57 * rival_mill_num + \
+                   25 * player_soldier - 25 * rival_soldier + \
                    10 * (player_blocked_soldiers - rival_blocked_soldiers) + \
                    1000 * (player_winning_config - rival_winning_config) + \
                    8 * (player_double_mill - rival_double_mill)
 
     def calculate_simple_heuristic(self, state):
         player = state[0]
-        index = state[1]
         player_mill_num = 0
         rival_mill_num = 0
         player_incomplete_mills = 0
@@ -291,8 +288,6 @@ class Player(AbstractPlayer):
         rival_winning_config = 1 if player.check_won_game(player.rival_index) else 0
         player_soldier = np.count_nonzero(player.player_pos > -1)
         rival_soldier = np.count_nonzero(player.rival_pos > -1)
-        player_three_config = 1 if player_incomplete_mills >= 2 else 0
-        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         board = player.board
         for index, x in enumerate(board):
             cell = int(x)
@@ -315,17 +310,19 @@ class Player(AbstractPlayer):
                     player_incomplete_mills += 1
                 if player.check_next_mill(index, player.player_index, board):
                     rival_incomplete_mills += 1
+        player_three_config = 1 if player_incomplete_mills >= 2 else 0
+        rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
         if player.turn_count < 18:
-            return 43 * (player_mill_num - rival_mill_num) + \
-                   2 * (player_incomplete_mills - rival_incomplete_mills) + \
-                   0 * player_soldier - 27 * rival_soldier + \
+            return 0 * (player_mill_num - rival_mill_num) + \
+                   1 * (player_incomplete_mills - rival_incomplete_mills) + \
+                   0 * player_soldier - 0 * rival_soldier + \
                    0 * (player_blocked_soldiers - rival_blocked_soldiers) + \
                    0 * (player_three_config - rival_three_config) + \
                    0 * (player_winning_config - rival_winning_config)
         else:
-            return 57 * (player_mill_num - rival_mill_num) + \
-                   2 * (player_soldier - rival_soldier) + \
-                   0 * (player_blocked_soldiers - rival_blocked_soldiers) + \
+            return 0 * (player_mill_num - rival_mill_num) + \
+                   0 * (player_soldier - rival_soldier) + \
+                   1 * (player_blocked_soldiers - rival_blocked_soldiers) + \
                    0 * (player_winning_config - rival_winning_config) + \
                    0 * (player_double_mill - rival_double_mill)
     # direction = (pos, soldier, dead_opponent_pos)
