@@ -2,14 +2,17 @@
 MiniMax Player with AlphaBeta pruning with light heuristic
 """
 from players.AbstractPlayer import AbstractPlayer
-#TODO: you can import more modules, if needed
+from players.MinimaxPlayer import Player as MiniMax
+
+# TODO: you can import more modules, if needed
 
 
 class Player(AbstractPlayer):
     def __init__(self, game_time):
-        AbstractPlayer.__init__(self, game_time) # keep the inheritance of the parent's (AbstractPlayer) __init__()
-        #TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
-
+        AbstractPlayer.__init__(self, game_time)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
+        self.player1 = MiniMax(game_time)
+        self.player1.enable_alpha_beta()
+        self.player1.enable_light_player()
 
     def set_game_params(self, board):
         """Set the game parameters needed for this player.
@@ -19,8 +22,7 @@ class Player(AbstractPlayer):
             - board: np.array, of the board.
         No output is expected.
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
+        self.player1.set_game_params(board)
 
     def make_move(self, time_limit):
         """Make move with this Player.
@@ -29,9 +31,8 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-
+        # TODO: erase the following line and implement this function.
+        return self.player1.make_move(time_limit)
 
     def set_rival_move(self, move):
         """Update your info, given the new position of the rival.
@@ -39,15 +40,11 @@ class Player(AbstractPlayer):
             - move: tuple, the new position of the rival.
         No output is expected
         """
-        #TODO: erase the following line and implement this function.
-        raise NotImplementedError
-
-
-
+        # TODO: erase the following line and implement this function.
+        self.player1.set_rival_move(move)
 
     ########## helper functions in class ##########
-    #TODO: add here helper functions in class, if needed
-
+    # TODO: add here helper functions in class, if needed
 
     ########## helper functions for AlphaBeta algorithm ##########
-    #TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm
+    # TODO: add here the utility, succ, and perform_move functions used in AlphaBeta algorithm

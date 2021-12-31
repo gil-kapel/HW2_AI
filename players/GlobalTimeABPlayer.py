@@ -35,16 +35,19 @@ class Player(AbstractPlayer):
         """
 
         if self.global_player.player1.turn_count < 10:
-            turn_time_limit = self.game_time * 0.01   # 5 turns (player turns) - 55% of game_time is left
+            turn_time_limit = self.game_time * 0.03   # 5 turns (player turns) - 85% of game_time is left
         elif self.global_player.player1.turn_count < 18:
-            turn_time_limit = self.game_time * 0.1  # 9 turns (player turns) - 30% of game_time is left
-        elif self.global_player.player1.turn_count < 30:
+            turn_time_limit = self.game_time * 0.1  # 9 turns (player turns) - 56% of game_time is left
+        elif self.game_time > 10:
             turn_time_limit = self.game_time * 0.1  # 15 turns (player turns) - 10% of game_time is left
+        elif self.game_time > 2:
+            turn_time_limit = 1
         else:
-            turn_time_limit = self.game_time * 0.01  # 60 turns = 0.01% of game_time
+            # simple play
+            turn_time_limit = 0.09
 
         start = time.time()
-        move = self.global_player.make_move(5)
+        move = self.global_player.make_move(turn_time_limit)
         self.game_time -= time.time() - start
         return move
 

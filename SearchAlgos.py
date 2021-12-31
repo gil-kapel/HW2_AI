@@ -38,10 +38,15 @@ class MiniMax(SearchAlgos):
         # state = (self,player_index,direction)
         # direction = (pos, soldier, dead_opponent_pos)
         if self.goal(state[0]) or depth == 0:
-            if maximizing_player:
-                return self.utility(state), state[2]
+            if self.goal(state[0]):
+                heuristic = 10000 if state[1] == state[0].player_index else -10000
+                return heuristic*depth, state[2]
             else:
-                return self.utility(state), None
+                if maximizing_player:
+                    return self.utility(state), state[2]
+                else:
+                    return self.utility(state), None
+
         if maximizing_player:
             curr_max = -np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1], state[2]):

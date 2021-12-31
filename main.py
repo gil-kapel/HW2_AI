@@ -10,15 +10,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     
-    parser.add_argument('-player1', default='AlphabetaPlayer', type=str,
+    parser.add_argument('-player1', default='LightABPlayer', type=str,
                         help='The type of the first player.',
                         choices=players_options)
-    parser.add_argument('-player2', default='AlphabetaPlayer',  type=str,
+    parser.add_argument('-player2', default='HeavyABPlayer',  type=str,
                         help='The type of the second player.',
                         choices=players_options)
-    parser.add_argument('-move_time', default=20, type=float,
+    parser.add_argument('-move_time', default=60, type=float,
                         help='Time (sec) for each turn.')
-    parser.add_argument('-game_time', default=2000, type=float, 
+    parser.add_argument('-game_time', default=2000, type=float,
                         help='Global game time (sec) for each player.')
     parser.add_argument('-terminal_viz', action='store_true',
                         help='Show game in terminal only.')
