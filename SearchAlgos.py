@@ -37,7 +37,7 @@ class MiniMax(SearchAlgos):
         """
         # state = (self,player_index,direction)
         # direction = (pos, soldier, dead_opponent_pos)
-        if self.goal(state[0]) or depth == 0:
+        if self.goal(state) or depth == 0:
             if maximizing_player:
                 return self.utility(state), state[1]
             else:
@@ -70,8 +70,6 @@ class AlphaBeta(SearchAlgos):
         # state = (self,player_index,direction)
         # direction = (pos, soldier, dead_opponent_pos)
         if self.goal(state) or depth == 0:
-            if state[1] == (-1, -1, -1):
-                print()
             if maximizing_player:
                 return self.utility(state), state[1]
             else:
@@ -83,23 +81,15 @@ class AlphaBeta(SearchAlgos):
                 curr = self.search(c, depth-1, False, alpha, beta)
                 curr_max = (curr[0], c[1]) if curr[0] > curr_max[0] else curr_max
                 if curr_max[0] >= beta:
-                    if curr_max == (-1, -1, -1):
-                        print()
                     return np.inf, None
                 alpha = max(curr_max[0], alpha)
-            if curr_max == (-1, -1, -1):
-                print()
             return curr_max
         else:
             curr_min = np.inf, (-1, -1, -1)
             for c in self.succ(state[0], state[1]):
                 curr = self.search(c, depth-1, True, alpha, beta)
-                curr_min = (curr[0], c[1]) if curr[0] <= curr_min[0] else curr_min
+                curr_min = (curr[0], c[1]) if curr[0] < curr_min[0] else curr_min
                 if curr_min[0] <= alpha:
-                    if curr_min[1] == (-1, -1, -1):
-                        print()
                     return -np.inf, None
                 beta = min(curr_min[0], beta)
-            if curr_min[1] == (-1, -1, -1):
-                print()
             return curr_min

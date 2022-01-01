@@ -396,36 +396,36 @@ def calculate_state_heuristic(state):
     player_three_config = 1 if player_incomplete_mills >= 2 else 0
     rival_three_config = 1 if rival_incomplete_mills >= 2 else 0
     if player.turn_count < 18:
-        return 0 * player_mill_num - 0 * rival_mill_num + \
-               0 * player_incomplete_mills - 0 * rival_incomplete_mills + \
-               30 * player_soldier - 30 * rival_soldier + \
-               0 * rival_blocked_soldiers - 0 * player_blocked_soldiers + \
-               0 * player_three_config - 0 * rival_three_config + \
-               0 * player_double_mill - 0 * rival_double_mill + \
-               0 * (player_winning_config - rival_winning_config)
+        return 10 * player_mill_num - 8 * rival_mill_num + \
+               8 * player_incomplete_mills - 6 * rival_incomplete_mills + \
+               15 * player_soldier - 15 * rival_soldier + \
+               4 * player_three_config - 4 * rival_three_config + \
+               4 * player_double_mill - 4 * rival_double_mill + \
+               1000 * (player_winning_config - rival_winning_config)
     else:
-        return 0 * player_mill_num - 0 * rival_mill_num + \
+        return 10 * player_mill_num - 10 * rival_mill_num + \
                25 * player_soldier - 25 * rival_soldier + \
-               0 * player_incomplete_mills - 0 * rival_incomplete_mills + \
-               0 * (rival_blocked_soldiers - player_blocked_soldiers) + \
-               0 * (player_winning_config - rival_winning_config) + \
-               0 * (player_double_mill - rival_double_mill)
+               10 * player_incomplete_mills - 10 * rival_incomplete_mills + \
+               4 * (rival_blocked_soldiers - player_blocked_soldiers) + \
+               1000 * (player_winning_config - rival_winning_config) + \
+               2 * (player_double_mill - rival_double_mill)
 
 
 def calculate_simple_heuristic(state):
     player = state[0]
     player.switch_player_rival()
-    player_incomplete_mills = 0
-    rival_incomplete_mills = 0
+    player_mill_num = 0
+    rival_mill_num = 0
     board = player.board
     for index, x in enumerate(board):
         cell = int(x)
-        if cell == 0:
-            if player.check_next_mill(index, player.player_index, board):
-                player_incomplete_mills += 1
-            if player.check_next_mill(index, player.player_index, board):
-                rival_incomplete_mills += 1
-    return player_incomplete_mills
+        if cell == player.player_index:
+            if player.is_mill(index):
+                player_mill_num += 1 / 3
+        elif cell == player.rival_index:
+            if player.is_mill(index):
+                rival_mill_num += 1 / 3
+    return player_mill_num-rival_mill_num
 
 
 def succ(player, direction):
