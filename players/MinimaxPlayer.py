@@ -65,7 +65,7 @@ class Player(AbstractPlayer):
             return best_move
         elif self.light_player:
             ## change depth
-            value, best_move = minimax.search((copy.deepcopy(self), best_move), 3, True)
+            value, best_move = minimax.search((copy.deepcopy(self), best_move), 4, True)
             self.update_move(best_move)
             return best_move
         else:
@@ -358,6 +358,7 @@ class Player(AbstractPlayer):
 
 def calculate_state_heuristic(state):
     player = state[0]
+    player.switch_player_rival()
     player_mill_num = 0
     rival_mill_num = 0
     player_incomplete_mills = 0
@@ -398,7 +399,7 @@ def calculate_state_heuristic(state):
         return 0 * player_mill_num - 0 * rival_mill_num + \
                0 * player_incomplete_mills - 0 * rival_incomplete_mills + \
                30 * player_soldier - 30 * rival_soldier + \
-               0 * rival_blocked_soldiers - 0 * player_blocked_soldiers  + \
+               0 * rival_blocked_soldiers - 0 * player_blocked_soldiers + \
                0 * player_three_config - 0 * rival_three_config + \
                0 * player_double_mill - 0 * rival_double_mill + \
                0 * (player_winning_config - rival_winning_config)
@@ -413,6 +414,7 @@ def calculate_state_heuristic(state):
 
 def calculate_simple_heuristic(state):
     player = state[0]
+    player.switch_player_rival()
     player_incomplete_mills = 0
     rival_incomplete_mills = 0
     board = player.board
@@ -443,8 +445,6 @@ def succ(player, direction):
                             player3 = copy.deepcopy(player2)
                             player3.board[to_kill] = 0
                             player3.rival_pos[index] = -2
-                            if (cell, soldier_that_moved, to_kill) == (2, 0, 8):
-                                print()
                             player3.switch_player_rival()
                             yield player3, (cell, soldier_that_moved, to_kill)
                 else:
@@ -479,8 +479,6 @@ def succ(player, direction):
 
 
 def is_goal(state) -> bool:
-    if(state[1] == (-1,-1,-1)):
-        print()
     blocked = True
     dead = False
     exists_soldier = False
