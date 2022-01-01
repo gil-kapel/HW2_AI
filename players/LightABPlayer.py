@@ -11,7 +11,6 @@ class Player(AbstractPlayer):
     def __init__(self, game_time):
         AbstractPlayer.__init__(self, game_time)  # keep the inheritance of the parent's (AbstractPlayer) __init__()
         self.player1 = MiniMax(game_time)
-        self.player1.enable_alpha_beta()
         self.player1.enable_light_player()
 
     def set_game_params(self, board):
