@@ -21,6 +21,7 @@ class Player(AbstractPlayer):
         self.AlphaBeta = False
         self.heavy_player = False
         self.light_player = False
+        self.is_switched = 0
         # TODO: initialize more fields, if needed, and the AlphaBeta algorithm from SearchAlgos.py
 
     def set_game_params(self, board):
@@ -60,39 +61,40 @@ class Player(AbstractPlayer):
         # while end - time.time() > 63 * end_phase:
         # phase 1 : (24-turn)*(24-turn-(depth-1))*...*() => (24-turn-(depth-1)) * int(turn/2)
         if self.heavy_player:
-            value, best_move = minimax.search((copy.deepcopy(self), best_move), 3, True)
+            value, best_move = minimax.search((copy.deepcopy(self), best_move), 2, True)
             self.update_move(best_move)
             return best_move
         elif self.light_player:
             ## change depth
-            value, best_move = minimax.search((copy.deepcopy(self), best_move), 4, True)
+            value, best_move = minimax.search((copy.deepcopy(self), best_move), 3, True)
             self.update_move(best_move)
             return best_move
         else:
             if time_limit < 0.1:
                 if self.turn_count < 18:
                     move = self.simple_stage_1_move()
-                    self.turn_count += 1
+                    self.update_move(move)
                     return move
                 else:
                     move = self.simple_stage_2_move()
-                    self.turn_count += 1
+                    self.update_move(move)
                     return move
-            while end - time.time() > time_condition * end_phase:
-                start_phase = time.time()
-                value, direction = minimax.search((copy.deepcopy(self), best_move), depth, True)
-                if value > max_value:
-                    best_move = direction
-                    max_value = value
-                end_phase = time.time() - start_phase
-                phase_1_end = (24 - self.turn_count - depth) + 2 * (np.count_nonzero(self.rival_pos > -1))
-                phase_2_end = 2.5 * (np.count_nonzero(self.player_pos > -1)) + 1 * (np.count_nonzero(
-                    self.rival_pos > -1))  ## 2.5 is avg branch of soldier + (avg soldiers able to kill) * kill
-                time_condition = phase_1_end if self.turn_count < 18 else phase_2_end
-                depth += 1
-            # update self values
-            self.update_move(best_move)
-            return best_move
+            else:
+                while end - time.time() > time_condition * end_phase:
+                    start_phase = time.time()
+                    value, direction = minimax.search((copy.deepcopy(self), best_move), depth, True)
+                    if value > max_value:
+                        best_move = direction
+                        max_value = value
+                    end_phase = time.time() - start_phase
+                    phase_1_end = (24 - self.turn_count - depth) + 2 * (np.count_nonzero(self.rival_pos > -1))
+                    phase_2_end = 2.5 * (np.count_nonzero(self.player_pos > -1)) + 1 * (np.count_nonzero(
+                        self.rival_pos > -1))  ## 2.5 is avg branch of soldier + (avg soldiers able to kill) * kill
+                    time_condition = phase_1_end if self.turn_count < 18 else phase_2_end
+                    depth += 1
+                # update self values
+                self.update_move(best_move)
+                return best_move
 
     def set_rival_move(self, move):
         """Update your info, given the new position of the rival.
@@ -208,6 +210,7 @@ class Player(AbstractPlayer):
         self.rival_pos = tmp
         self.player_index = self.rival_index
         self.rival_index = 3 - self.player_index
+        self.is_switched = 1 - self.is_switched
 
     def check_if_blocked(self, position, board=None):
         """
@@ -358,7 +361,8 @@ class Player(AbstractPlayer):
 
 def calculate_state_heuristic(state):
     player = state[0]
-    player.switch_player_rival()
+    if player.is_switched == 1:
+        player.switch_player_rival()
     player_mill_num = 0
     rival_mill_num = 0
     player_incomplete_mills = 0
@@ -413,7 +417,8 @@ def calculate_state_heuristic(state):
 
 def calculate_simple_heuristic(state):
     player = state[0]
-    player.switch_player_rival()
+    if player.is_switched == 1:
+        player.switch_player_rival()
     player_mill_num = 0
     rival_mill_num = 0
     board = player.board

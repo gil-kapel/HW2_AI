@@ -68,7 +68,8 @@ class GameWrapper:
             messages = [f'Time Up For Player {player_index_time_up}',
                         f'    Player {3 - player_index_time_up} Won!']
             self.pretty_print_end_game(messages)
-
+        if not self.game.check_move(move):
+            print (move)
         assert self.game.check_move(move), 'illegal move'
 
         self.players[1 - player_index].set_rival_move(move)
@@ -98,6 +99,8 @@ class GameWrapper:
             if made_mill:
                 assert move[2] != -1, 'illegal move, did not choose opponent soldier to take out'
             else:
+                if (move[2] != -1):
+                    print(move)
                 assert move[2] == -1, 'illegal move, chose opponent soldier to take out but did not make mill'
 
             if self.print_game_in_terminal:
