@@ -33,8 +33,9 @@ class Player(AbstractPlayer):
         output:
             - direction: tuple, specifing the Player's movement
         """
-
-        if self.global_player.player1.turn_count < 10:
+        if self.global_player.player1.turn_count == 1:
+            turn_time_limit = 0.09
+        elif self.global_player.player1.turn_count < 10:
             turn_time_limit = self.game_time * 0.03   # 5 turns (player turns) - 85% of game_time is left
         elif self.global_player.player1.turn_count < 18:
             turn_time_limit = self.game_time * 0.1  # 9 turns (player turns) - 56% of game_time is left
